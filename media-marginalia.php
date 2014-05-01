@@ -10,6 +10,14 @@ Author URI: http://www.d-bow.com
 */
 
 
+# SET SOURCE FILE TO ANNOTATE.
+function mm_get_source() {
+  return '';
+}
+
+
+# CREATE ANNOTATION CUSTOM POST TYPE.
+
 add_action( 'init', 'mm_create_post_type' );
 
 function mm_create_post_type() {
@@ -61,8 +69,10 @@ function mm_meta_box_cb( $post ) {
 			</select>
 	</p>
   <p>
+			<video id="mm_annotation_source_player" src="<?php echo mm_get_source(); ?>" width="320" height="240" controls></video>
+			<br />
       <label for="mm_annotation_timecode">Timecode</label>
-      <input type="text" name="mm_annotation_timecode" id="mm_annotation_timecode" value="<?php echo $timecode; ?>" />
+      <input type="text" name="mm_annotation_timecode" id="mm_annotation_timecode" value="<?php echo $timecode; ?>" size="9" />
   </p>
 	<p>
 			<label for="mm_annotation_shot">Shot</label>
@@ -88,6 +98,68 @@ function mm_meta_box_cb( $post ) {
 	</p>
 
   <?php
+}
+
+
+# ADD ANNOTATION JAVASCRIPT TO ADMIN PAGE.
+
+add_action('admin_head','mm_add_custom_scripts');
+
+function mm_add_custom_scripts() {
+	// Only run this script on new and edit pages for annotations.
+	global $post_type;
+  if( $post_type !== 'mm_annotation' ) {
+		return;
+	}
+	global $pagenow;
+	if ( $pagenow !== 'post-new.php' && $pagenow !== 'post.php' ) {
+		return;
+	}
+
+	?>
+	<script>
+
+		jQuery(function() {
+			var timecodeElement = jQuery('#mm_annotation_timecode');
+
+			var video = new MediaElement('mm_annotation_source_player', {
+				alwaysShowControls: true,
+				enableKeyboard: true,
+				success: function (mediaElement, domObject) {
+					mediaElement.addEventListener('loadeddata', function(e) {
+						// If form already has timecode, set video to that point.
+						if (timecodeElement.val()) {
+							mediaElement.setCurrentTime(timecodeElement.val());
+						}
+						// Update form field anytime video changes.
+						mediaElement.addEventListener('timeupdate', function(e) {
+							var val = parseInt(timecodeElement.val(), 10);
+							if (val !== mediaElement.currentTime) {
+								timecodeElement.val(mediaElement.currentTime);
+							}
+						}, false);
+					}, false);
+				},
+				error: function (e) {
+					try {
+						console.log('Error! ' + e);
+					} catch (e) {}
+				}
+			});
+
+			// Update video anytime form field changes.
+			timecodeElement.on('change', function() {
+				var val = parseInt(timecodeElement.val(), 10);
+				if (video && video.currentTime !== val) {
+					video.setCurrentTime(val);
+				}
+			});
+
+
+		});
+
+	</script>
+	<?php
 }
 
 
