@@ -40,6 +40,8 @@ function mm_create_meta_box() {
 }
 
 function mm_meta_box_cb( $post ) {
+	wp_nonce_field( 'mm_meta_box', 'mm_meta_box_nonce' );
+
 	$values = get_post_custom( $post->ID );
 
 	$category = isset( $values['mm_annotation_category'] ) ? esc_attr( $values['mm_annotation_category'][0] ) : '';
@@ -94,28 +96,46 @@ function mm_meta_box_cb( $post ) {
 add_action( 'save_post', 'mm_meta_box_save' );
 
 function mm_meta_box_save( $post_id ) {
-  // Bail if we're doing an auto save
-  if( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
+	// Post autosave should not overwrite metabox.
+  if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
 
-  // if our nonce isn't there, or we can't verify it, bail
-  if( !isset( $_POST['meta_box_nonce'] ) || !wp_verify_nonce( $_POST['meta_box_nonce'], 'my_meta_box_nonce' ) ) return;
+	// Check if nonce is set.
+	if ( !isset( $_POST['mm_meta_box_nonce'] ) ) {
+		return;
+	}
 
-  // if our current user can't edit this post, bail
-  if( !current_user_can( 'edit_post' ) ) return;
+	// and verify that the nonce is valid.
+	if ( !wp_verify_nonce( $_POST['mm_meta_box_nonce'], 'mm_meta_box' ) ) {
+		return;
+	}
+
+	// Verify current user has edit_post permissions.
+  if ( !current_user_can( 'edit_post' ) ) {
+		return;
+	}
 
 	// Actually save data.
-  if( isset( $_POST['mm_annotation_category'] ) )
-      update_post_meta( $post_id, 'mm_annotation_category', esc_attr( $_POST['mm_annotation_category'] ) );
-	if( isset( $_POST['mm_annotation_timecode'] ) )
-			update_post_meta( $post_id, 'mm_annotation_timecode', esc_attr( $_POST['mm_annotation_timecode'] ) );
-	if( isset( $_POST['mm_annotation_shot'] ) )
-			update_post_meta( $post_id, 'mm_annotation_shot', esc_attr( $_POST['mm_annotation_shot'] ) );
-	if( isset( $_POST['mm_annotation_lat'] ) )
-			update_post_meta( $post_id, 'mm_annotation_lat', esc_attr( $_POST['mm_annotation_lat'] ) );
-	if( isset( $_POST['mm_annotation_long'] ) )
-			update_post_meta( $post_id, 'mm_annotation_long', esc_attr( $_POST['mm_annotation_long'] ) );
-	if( isset( $_POST['mm_annotation_x'] ) )
-			update_post_meta( $post_id, 'mm_annotation_x', esc_attr( $_POST['mm_annotation_x'] ) );
-	if( isset( $_POST['mm_annotation_y'] ) )
-			update_post_meta( $post_id, 'mm_annotation_y', esc_attr( $_POST['mm_annotation_y'] ) );
+  if ( isset( $_POST['mm_annotation_category'] ) ) {
+    update_post_meta( $post_id, 'mm_annotation_category', esc_attr( $_POST['mm_annotation_category'] ) );
+	}
+	if ( isset( $_POST['mm_annotation_timecode'] ) ) {
+		update_post_meta( $post_id, 'mm_annotation_timecode', esc_attr( $_POST['mm_annotation_timecode'] ) );
+	}
+	if ( isset( $_POST['mm_annotation_shot'] ) ) {
+		update_post_meta( $post_id, 'mm_annotation_shot', esc_attr( $_POST['mm_annotation_shot'] ) );
+	}
+	if ( isset( $_POST['mm_annotation_lat'] ) ) {
+		update_post_meta( $post_id, 'mm_annotation_lat', esc_attr( $_POST['mm_annotation_lat'] ) );
+	}
+	if ( isset( $_POST['mm_annotation_long'] ) ) {
+		update_post_meta( $post_id, 'mm_annotation_long', esc_attr( $_POST['mm_annotation_long'] ) );
+	}
+	if ( isset( $_POST['mm_annotation_x'] ) ) {
+		update_post_meta( $post_id, 'mm_annotation_x', esc_attr( $_POST['mm_annotation_x'] ) );
+	}
+	if ( isset( $_POST['mm_annotation_y'] ) ) {
+		update_post_meta( $post_id, 'mm_annotation_y', esc_attr( $_POST['mm_annotation_y'] ) );
+	}
 }
