@@ -81,7 +81,11 @@ function mm_meta_box_cb( $post ) {
   </p>
 	<p>
 			<label for="mm_annotation_shot">Shot</label>
-			<input type="text" name="mm_annotation_shot" id="mm_annotation_shot" value="<?php echo $shot; ?>" />
+			<select name="mm_annotation_shot" id="mm_annotation_shot">
+				<?php if ($shot) { ?>
+					<option value="<?php echo $shot; ?>" selected><?php echo $shot; ?></option>
+				<?php } ?>
+			</select>
 	</p>
 	<p>
 			<label>Location</label>
@@ -162,6 +166,29 @@ function mm_add_custom_scripts() {
 				if (video && video.currentTime !== val) {
 					video.setCurrentTime(val);
 				}
+			});
+
+
+			// SHOT
+
+			// Hardcoded array of shot options to select from.
+			var SHOTS = [
+				'SHOT OPTION 1',
+				'SHOT OPTION 2',
+				'SHOT OPTION 3'
+			];
+
+			// Add options to shot select element.
+			var shotSelect = jQuery('#mm_annotation_shot');
+			var selectedShot = shotSelect.val();
+
+			jQuery.each(SHOTS, function(i, shot) {
+				// If option is already selected, it will be in the select box already.
+				if (shot === selectedShot) {
+					return;
+				}
+				var shotOption = jQuery('<option></option>');
+				shotSelect.append(shotOption.val(shot).text(shot));
 			});
 
 
