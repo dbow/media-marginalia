@@ -15,6 +15,11 @@ function mm_get_source() {
   return '';
 }
 
+# SET GOOGLE MAPS API KEY.
+function mm_get_gmaps_api_key() {
+	return '';
+}
+
 
 # CREATE ANNOTATION CUSTOM POST TYPE.
 
@@ -81,6 +86,7 @@ function mm_meta_box_cb( $post ) {
 	<p>
 			<label>Location</label>
 			<span class="description">e.g. 40.710007,-73.950643</span>
+			<img id="mm_location_img" style="display: block;"></img>
 			<br />
 			<label for="mm_annotation_lat">Latitude</label>
 			<input type="text" name="mm_annotation_lat" id="mm_annotation_lat" value="<?php echo $lat; ?>" size="8" />
@@ -120,6 +126,9 @@ function mm_add_custom_scripts() {
 	<script>
 
 		jQuery(function() {
+
+			// TIMECODE
+
 			var timecodeElement = jQuery('#mm_annotation_timecode');
 
 			var video = new MediaElement('mm_annotation_source_player', {
@@ -156,6 +165,64 @@ function mm_add_custom_scripts() {
 			});
 
 
+			// LATITUDE / LONGITUDE
+
+			// Google Street View API Integration
+			// Shows Street View Image of current lat/long coordinates.
+			// https://developers.google.com/maps/documentation/streetview/
+
+			var STREET_VIEW_HOST = '//maps.googleapis.com/maps/api/streetview?';
+			var apiKey = '<?php echo mm_get_gmaps_api_key(); ?>';
+			var protocol = apiKey ? 'https:' : ''; // Must be https with API key.
+
+			// Map of param key to value.
+			var streetViewParams = {
+				// Required params
+				size: '200x200',
+				location: '', // Set via lat/long inputs.
+				sensor: 'false'
+				// TODO(dbow): Add support for configuring other URL params:
+				// heading: '',
+				// fov: '',
+				// pitch: ''
+			};
+
+			var latEl = jQuery('#mm_annotation_lat');
+			var longEl = jQuery('#mm_annotation_long');
+			var locationImage = jQuery('#mm_location_img');
+
+			function locationChange() {
+				var lat = latEl.val();
+				var long = longEl.val();
+
+				// Show the Street View Image for the given lat/long.
+				if (lat && long) {
+					// Update params map.
+					streetViewParams.location = latEl.val() + ',' + longEl.val();
+					// Assemble URL.
+					var params = [];
+					for (var param in streetViewParams) {
+						params.push(param + '=' + streetViewParams[param]);
+					}
+					if (apiKey) {
+						params.push('key=' + apiKey);
+					}
+					// Set image SRC to street view URL and show image.
+					locationImage.attr('src',
+							protocol + STREET_VIEW_HOST + params.join('&')).show();
+
+				// If there isn't a lat or long, hide the image.
+				} else {
+					locationImage.hide();
+				}
+			}
+
+			// Update image based on any current lat/long inputs.
+			locationChange();
+
+			// Any time either changes, update image.
+			latEl.on('change', locationChange);
+			longEl.on('change', locationChange);
 		});
 
 	</script>
