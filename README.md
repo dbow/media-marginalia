@@ -5,3 +5,10 @@
 Media Marginalia is a Wordpress Plugin that takes the concept of textual marginalia and applies it to video and audio.
 
 It provides an interface to create/read/update/delete multi-media (text/video/audio) annotations for a given media file (video/audio).
+
+
+# Shot Viewer #
+
+In the wordpress themes directory, type the following command to symlink to this plugin to get the themes.
+
+```ln -s ../plugins/media-marginalia/ media-marginalia```
