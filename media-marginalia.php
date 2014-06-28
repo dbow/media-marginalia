@@ -57,21 +57,13 @@ function mm_meta_box_cb( $post ) {
 
   $values = get_post_custom( $post->ID );
 
-  $timecode = isset( $values['mm_annotation_timecode'] ) ? esc_attr( $values['mm_annotation_timecode'][0] ) : '';
   $shot = isset( $values['mm_annotation_shot'] ) ? esc_attr( $values['mm_annotation_shot'][0] ) : '';
+  $timecode = isset( $values['mm_annotation_timecode'] ) ? esc_attr( $values['mm_annotation_timecode'][0] ) : '';
   $streetview = isset( $values['mm_annotation_streetview'] ) ? esc_attr( $values['mm_annotation_streetview'][0] ) : '';
   $x = isset( $values['mm_annotation_x'] ) ? esc_attr( $values['mm_annotation_x'][0] ) : '';
   $y = isset( $values['mm_annotation_y'] ) ? esc_attr( $values['mm_annotation_y'][0] ) : '';
 
   ?>
-  <div>
-      <video id="mm_annotation_source_player" src="<?php echo mm_get_source(); ?>" width="320" height="240" controls></video>
-      <div id="mm_annotation_position_marker" style="width: 5px; height: 5px; border: 1px solid #00aeef; position: absolute; top: 0px; left: 0px;"></div>
-  </div>
-  <div>
-      <label for="mm_annotation_timecode">Timecode</label>
-      <input type="text" name="mm_annotation_timecode" id="mm_annotation_timecode" value="<?php echo $timecode; ?>" size="9" />
-  </div>
   <div>
       <label for="mm_annotation_shot">Shot</label>
       <select name="mm_annotation_shot" id="mm_annotation_shot">
@@ -79,6 +71,14 @@ function mm_meta_box_cb( $post ) {
           <option value="<?php echo $shot; ?>" selected><?php echo $shot; ?></option>
         <?php } ?>
       </select>
+  </div>
+  <div>
+      <video id="mm_annotation_source_player" src="<?php echo mm_get_source(); ?>" width="320" height="240" controls></video>
+      <div id="mm_annotation_position_marker" style="width: 5px; height: 5px; border: 1px solid #00aeef; position: absolute; top: 0px; left: 0px;"></div>
+  </div>
+  <div>
+      <label for="mm_annotation_timecode">Timecode</label>
+      <input type="text" name="mm_annotation_timecode" id="mm_annotation_timecode" value="<?php echo $timecode; ?>" size="9" />
   </div>
   <div>
       <label>Screen Position</label>
@@ -163,25 +163,62 @@ function mm_add_custom_scripts() {
 
       // SHOT
 
-      // Hardcoded array of shot options to select from.
-      var SHOTS = [
-        'SHOT OPTION 1',
-        'SHOT OPTION 2',
-        'SHOT OPTION 3'
-      ];
+      // Get shots from google spreadsheet
+      var SHOTS = [];
 
-      // Add options to shot select element.
-      var shotSelect = jQuery('#mm_annotation_shot');
-      var selectedShot = shotSelect.val();
+      var requestDataFromSpreadsheet = function() {
+        var key = '10fRfd40j_bdieQuqDrUxMoS4hFvGX3Fdb98YdC9af9A',
+            url = '//spreadsheets.google.com/feeds/cells/' +
+            key + '/od6/public/basic?alt=json-in-script&callback=_handleShotData';
+        // Via JSONP.
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = url;
+        jQuery(document.body).append(script);
+      };
 
-      jQuery.each(SHOTS, function(i, shot) {
-        // If option is already selected, it will be in the select box already.
-        if (shot === selectedShot) {
+      window._handleShotData = function(data) {
+        data = data.feed && data.feed.entry;
+        if (!data || !data.length) {
           return;
         }
-        var shotOption = jQuery('<option></option>');
-        shotSelect.append(shotOption.val(shot).text(shot));
-      });
+
+        // Parse response.
+        var contents,
+            cell,
+            row,
+            column,
+            value;
+
+        for (var i = 0, len = data.length; i < len; i++) {
+          contents = data[i];
+          cell = contents.title.$t; // e.g. "A1" or "C3".
+          row = parseInt(cell.replace(/[a-zA-Z]/g, ''), 10); // Replace letters to get row e.g. 1 or 3.
+          // Only handle rows other than header.
+          if (row > 1) {
+            column = cell.replace(/[0-9]/g, ''); // Replace numbers to get column e.g. "A" or "C".
+            value = contents.content.$t; // Get value of cell.
+            if (column === 'A') {
+              // Put shot #s in SHOTS array.
+              SHOTS.push(value);
+            }
+          }
+        }
+
+        // Add options to shot select element.
+        var shotSelect = jQuery('#mm_annotation_shot');
+        var selectedShot = shotSelect.val();
+        jQuery.each(SHOTS, function(i, shot) {
+          // If option is already selected, it will be in the select box already.
+          if (shot === selectedShot) {
+            return;
+          }
+          var shotOption = jQuery('<option></option>');
+          shotSelect.append(shotOption.val(shot).text(shot));
+        });
+      };
+
+      requestDataFromSpreadsheet();
 
 
       // SCREEN POSITION
