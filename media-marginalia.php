@@ -57,7 +57,6 @@ function mm_meta_box_cb( $post ) {
 
   $values = get_post_custom( $post->ID );
 
-  $category = isset( $values['mm_annotation_category'] ) ? esc_attr( $values['mm_annotation_category'][0] ) : '';
   $timecode = isset( $values['mm_annotation_timecode'] ) ? esc_attr( $values['mm_annotation_timecode'][0] ) : '';
   $shot = isset( $values['mm_annotation_shot'] ) ? esc_attr( $values['mm_annotation_shot'][0] ) : '';
   $streetview = isset( $values['mm_annotation_streetview'] ) ? esc_attr( $values['mm_annotation_streetview'][0] ) : '';
@@ -66,13 +65,6 @@ function mm_meta_box_cb( $post ) {
 
   ?>
   <div>
-      <label for="mm_annotation_category">Category</label>
-      <select name="mm_annotation_category" id="mm_annotation_category">
-          <option value="story" <?php selected( $category, 'story' ); ?>>Story</option>
-          <option value="place" <?php selected( $category, 'place' ); ?>>Place</option>
-      </select>
-  </div>
-  <div style="position: relative; margin-top: 10px;">
       <video id="mm_annotation_source_player" src="<?php echo mm_get_source(); ?>" width="320" height="240" controls></video>
       <div id="mm_annotation_position_marker" style="width: 5px; height: 5px; border: 1px solid #00aeef; position: absolute; top: 0px; left: 0px;"></div>
   </div>
@@ -316,9 +308,6 @@ function mm_meta_box_save( $post_id ) {
   }
 
   // Actually save data.
-  if ( isset( $_POST['mm_annotation_category'] ) ) {
-    update_post_meta( $post_id, 'mm_annotation_category', esc_attr( $_POST['mm_annotation_category'] ) );
-  }
   if ( isset( $_POST['mm_annotation_timecode'] ) ) {
     update_post_meta( $post_id, 'mm_annotation_timecode', esc_attr( $_POST['mm_annotation_timecode'] ) );
   }
