@@ -60,8 +60,7 @@ function mm_meta_box_cb( $post ) {
   $category = isset( $values['mm_annotation_category'] ) ? esc_attr( $values['mm_annotation_category'][0] ) : '';
   $timecode = isset( $values['mm_annotation_timecode'] ) ? esc_attr( $values['mm_annotation_timecode'][0] ) : '';
   $shot = isset( $values['mm_annotation_shot'] ) ? esc_attr( $values['mm_annotation_shot'][0] ) : '';
-  $lat = isset( $values['mm_annotation_lat'] ) ? esc_attr( $values['mm_annotation_lat'][0] ) : '';
-  $long = isset( $values['mm_annotation_long'] ) ? esc_attr( $values['mm_annotation_long'][0] ) : '';
+  $streetview = isset( $values['mm_annotation_streetview'] ) ? esc_attr( $values['mm_annotation_streetview'][0] ) : '';
   $x = isset( $values['mm_annotation_x'] ) ? esc_attr( $values['mm_annotation_x'][0] ) : '';
   $y = isset( $values['mm_annotation_y'] ) ? esc_attr( $values['mm_annotation_y'][0] ) : '';
 
@@ -99,14 +98,13 @@ function mm_meta_box_cb( $post ) {
       <input type="text" name="mm_annotation_y" id="mm_annotation_y" value="<?php echo $y; ?>" size="1" />%
   </div>
   <div>
-      <label>Location</label>
-      <span class="description">e.g. 40.710007,-73.950643</span>
+      <label>Location (Street View Image)</label>
+      <br />
+      <span class="description">e.g. https://www.google.com/maps/@40.709973,-73.950954,3a,75y,97.1h,96.71t/data=!3m4!1e1!3m2!1sVVz-u8IKFVY8DMJ1ZJHnQg!2e0</span>
       <img id="mm_location_img" style="display: block;"></img>
       <br />
-      <label for="mm_annotation_lat">Latitude</label>
-      <input type="text" name="mm_annotation_lat" id="mm_annotation_lat" value="<?php echo $lat; ?>" size="8" />
-      <label for="mm_annotation_long">Longitude</label>
-      <input type="text" name="mm_annotation_long" id="mm_annotation_long" value="<?php echo $long; ?>" size="8" />
+      <label for="mm_annotation_streetview">URL</label>
+      <input type="text" name="mm_annotation_streetview" id="mm_annotation_streetview" value="<?php echo $streetview; ?>" size="30" />
   </div>
 
   <?php
@@ -230,30 +228,38 @@ function mm_add_custom_scripts() {
       var apiKey = '<?php echo mm_get_gmaps_api_key(); ?>';
       var protocol = apiKey ? 'https:' : ''; // Must be https with API key.
 
+      // Typical street view URL:
+      // https://www.google.com/maps/@40.709973,-73.950954,3a,75y,97.1h,96.71t/data=!3m4!1e1!3m2!1sVVz-u8IKFVY8DMJ1ZJHnQg!2e0
+      // /@[latitude],[longitude],[unknown],[fov]y,[heading]h,[pitch + 90]t/
+
       // Map of param key to value.
       var streetViewParams = {
-        // Required params
         size: '200x200',
-        location: '', // Set via lat/long inputs.
         sensor: 'false'
-        // TODO(dbow): Add support for configuring other URL params:
-        // heading: '',
-        // fov: '',
-        // pitch: ''
       };
 
-      var latEl = jQuery('#mm_annotation_lat');
-      var longEl = jQuery('#mm_annotation_long');
+      function parseStreetViewUrl(url) {
+        var re = /www\.google\.com\/maps\/@([^\/]+)\//;
+        var streetViewInfo = re.exec(url);
+        if (!streetViewInfo) {
+          return false;
+        }
+        streetViewInfo = streetViewInfo[1].split(',');
+        streetViewParams.location = streetViewInfo[0] + ',' + streetViewInfo[1];
+        streetViewParams.fov = parseInt(streetViewInfo[3].replace('y', ''), 10);
+        streetViewParams.heading = parseInt(streetViewInfo[4].replace('h', ''), 10);
+        streetViewParams.pitch = 90 - parseInt(streetViewInfo[5].replace('t', ''), 10);
+        return true;
+      }
+
+      var streetViewUrl = jQuery('#mm_annotation_streetview');
       var locationImage = jQuery('#mm_location_img');
 
       function locationChange() {
-        var lat = latEl.val();
-        var long = longEl.val();
+        var url = streetViewUrl.val();
 
-        // Show the Street View Image for the given lat/long.
-        if (lat && long) {
-          // Update params map.
-          streetViewParams.location = latEl.val() + ',' + longEl.val();
+        // Show the Street View Image for the given URL.
+        if (url && parseStreetViewUrl(url)) {
           // Assemble URL.
           var params = [];
           for (var param in streetViewParams) {
@@ -266,7 +272,7 @@ function mm_add_custom_scripts() {
           locationImage.attr('src',
               protocol + STREET_VIEW_HOST + params.join('&')).show();
 
-        // If there isn't a lat or long, hide the image.
+        // If there isn't a valid URL, hide the image.
         } else {
           locationImage.hide();
         }
@@ -276,8 +282,7 @@ function mm_add_custom_scripts() {
       locationChange();
 
       // Any time either changes, update image.
-      latEl.on('change', locationChange);
-      longEl.on('change', locationChange);
+      streetViewUrl.on('change', locationChange);
     });
 
   </script>
@@ -320,11 +325,8 @@ function mm_meta_box_save( $post_id ) {
   if ( isset( $_POST['mm_annotation_shot'] ) ) {
     update_post_meta( $post_id, 'mm_annotation_shot', esc_attr( $_POST['mm_annotation_shot'] ) );
   }
-  if ( isset( $_POST['mm_annotation_lat'] ) ) {
-    update_post_meta( $post_id, 'mm_annotation_lat', esc_attr( $_POST['mm_annotation_lat'] ) );
-  }
-  if ( isset( $_POST['mm_annotation_long'] ) ) {
-    update_post_meta( $post_id, 'mm_annotation_long', esc_attr( $_POST['mm_annotation_long'] ) );
+  if ( isset( $_POST['mm_annotation_streetview'] ) ) {
+    update_post_meta( $post_id, 'mm_annotation_streetview', esc_attr( $_POST['mm_annotation_streetview'] ) );
   }
   if ( isset( $_POST['mm_annotation_x'] ) ) {
     update_post_meta( $post_id, 'mm_annotation_x', esc_attr( $_POST['mm_annotation_x'] ) );
