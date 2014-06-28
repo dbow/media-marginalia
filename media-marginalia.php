@@ -58,12 +58,17 @@ function mm_meta_box_cb( $post ) {
   $values = get_post_custom( $post->ID );
 
   $shot = isset( $values['mm_annotation_shot'] ) ? esc_attr( $values['mm_annotation_shot'][0] ) : '';
-  $timecode = isset( $values['mm_annotation_timecode'] ) ? esc_attr( $values['mm_annotation_timecode'][0] ) : '';
-  $streetview = isset( $values['mm_annotation_streetview'] ) ? esc_attr( $values['mm_annotation_streetview'][0] ) : '';
+  $order = isset( $values['mm_annotation_order'] ) ? esc_attr( $values['mm_annotation_order'][0] ) : '';
+  $start_timecode = isset( $values['mm_annotation_start_timecode'] ) ? esc_attr( $values['mm_annotation_start_timecode'][0] ) : '';
   $x = isset( $values['mm_annotation_x'] ) ? esc_attr( $values['mm_annotation_x'][0] ) : '';
   $y = isset( $values['mm_annotation_y'] ) ? esc_attr( $values['mm_annotation_y'][0] ) : '';
+  $streetview = isset( $values['mm_annotation_streetview'] ) ? esc_attr( $values['mm_annotation_streetview'][0] ) : '';
 
   ?>
+  <div>
+      <video id="mm_annotation_source_player" src="<?php echo mm_get_source(); ?>" width="320" height="240" controls></video>
+      <div id="mm_annotation_position_marker" style="width: 5px; height: 5px; border: 1px solid #00aeef; position: absolute; top: 0px; left: 0px;"></div>
+  </div>
   <div>
       <label for="mm_annotation_shot">Shot</label>
       <select name="mm_annotation_shot" id="mm_annotation_shot">
@@ -73,12 +78,12 @@ function mm_meta_box_cb( $post ) {
       </select>
   </div>
   <div>
-      <video id="mm_annotation_source_player" src="<?php echo mm_get_source(); ?>" width="320" height="240" controls></video>
-      <div id="mm_annotation_position_marker" style="width: 5px; height: 5px; border: 1px solid #00aeef; position: absolute; top: 0px; left: 0px;"></div>
+      <label for="mm_annotation_order">Order (within Shot)</label>
+      <input type="text" name="mm_annotation_order" id="mm_annotation_order" value="<?php echo $order; ?>" size="9" />
   </div>
   <div>
-      <label for="mm_annotation_timecode">Timecode</label>
-      <input type="text" name="mm_annotation_timecode" id="mm_annotation_timecode" value="<?php echo $timecode; ?>" size="9" />
+      <label for="mm_annotation_start_timecode">Start Timecode</label>
+      <input type="text" name="mm_annotation_start_timecode" id="mm_annotation_start_timecode" value="<?php echo $start_timecode; ?>" size="9" />
   </div>
   <div>
       <label>Screen Position</label>
@@ -125,7 +130,7 @@ function mm_add_custom_scripts() {
 
       // TIMECODE
 
-      var timecodeElement = jQuery('#mm_annotation_timecode');
+      var timecodeElement = jQuery('#mm_annotation_start_timecode');
 
       var video = new MediaElement('mm_annotation_source_player', {
         alwaysShowControls: true,
@@ -345,19 +350,22 @@ function mm_meta_box_save( $post_id ) {
   }
 
   // Actually save data.
-  if ( isset( $_POST['mm_annotation_timecode'] ) ) {
-    update_post_meta( $post_id, 'mm_annotation_timecode', esc_attr( $_POST['mm_annotation_timecode'] ) );
-  }
   if ( isset( $_POST['mm_annotation_shot'] ) ) {
     update_post_meta( $post_id, 'mm_annotation_shot', esc_attr( $_POST['mm_annotation_shot'] ) );
   }
-  if ( isset( $_POST['mm_annotation_streetview'] ) ) {
-    update_post_meta( $post_id, 'mm_annotation_streetview', esc_attr( $_POST['mm_annotation_streetview'] ) );
+  if ( isset( $_POST['mm_annotation_order'] ) ) {
+    update_post_meta( $post_id, 'mm_annotation_order', esc_attr( $_POST['mm_annotation_order'] ) );
+  }
+  if ( isset( $_POST['mm_annotation_start_timecode'] ) ) {
+    update_post_meta( $post_id, 'mm_annotation_start_timecode', esc_attr( $_POST['mm_annotation_start_timecode'] ) );
   }
   if ( isset( $_POST['mm_annotation_x'] ) ) {
     update_post_meta( $post_id, 'mm_annotation_x', esc_attr( $_POST['mm_annotation_x'] ) );
   }
   if ( isset( $_POST['mm_annotation_y'] ) ) {
     update_post_meta( $post_id, 'mm_annotation_y', esc_attr( $_POST['mm_annotation_y'] ) );
+  }
+  if ( isset( $_POST['mm_annotation_streetview'] ) ) {
+    update_post_meta( $post_id, 'mm_annotation_streetview', esc_attr( $_POST['mm_annotation_streetview'] ) );
   }
 }
