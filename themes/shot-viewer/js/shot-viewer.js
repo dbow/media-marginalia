@@ -80,7 +80,9 @@ var _shots = _shots || {};
         }
         column = cell.replace(/[0-9]/g, ''); // Replace numbers to get column e.g. "A" or "C".
         value = contents.content.$t; // Get value of cell.
-        parseCellData[column](value, row);
+        if (parseCellData[column]) {
+          parseCellData[column](value, row);
+        }
       }
     }
 
