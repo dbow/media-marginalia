@@ -64,7 +64,7 @@ function mm_meta_box_cb( $post ) {
   $streetview = isset( $values['mm_annotation_streetview'] ) ? esc_attr( $values['mm_annotation_streetview'][0] ) : '';
 
   ?>
-  <div style="width: 320px; height: 240px;">
+  <div id="video_container" style="width: 320px; height: 240px; position: relative;">
       <video id="mm_annotation_source_player" style="width: 100%; height: 100%;" src="" width="320" height="240" controls></video>
       <div id="mm_annotation_position_marker" style="width: 5px; height: 5px; border: 1px solid #00aeef; position: absolute; top: 0px; left: 0px;"></div>
   </div>
@@ -118,7 +118,8 @@ function mm_add_custom_scripts() {
   }
 
   wp_enqueue_script('jquery-ui-slider');
-  wp_enqueue_style('jquery-ui-slider',
+  wp_enqueue_script('jquery-ui-draggable');
+  wp_enqueue_style('jquery-ui',
                    '//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css',
                    false,
                    PLUGIN_VERSION,
@@ -341,6 +342,15 @@ function mm_add_custom_scripts() {
       xEl.on('change', positionChange);
       yEl.on('change', positionChange);
 
+      posEl.draggable({
+        containment: '#video_container',
+        stop: function() {
+          var x = posEl.css('left').replace('px', '');
+          var y = posEl.css('top').replace('px', '');
+          xEl.val((x / video.width) * 100);
+          yEl.val((y / video.height) * 100);
+        }
+      });
 
       // LATITUDE / LONGITUDE
 
