@@ -57,7 +57,6 @@ function mm_meta_box_cb( $post ) {
 
   $values = get_post_custom( $post->ID );
 
-  $order = isset( $values['mm_annotation_order'] ) ? esc_attr( $values['mm_annotation_order'][0] ) : '';
   $start_timecode = isset( $values['mm_annotation_start_timecode'] ) ? esc_attr( $values['mm_annotation_start_timecode'][0] ) : '';
   $x = isset( $values['mm_annotation_x'] ) ? esc_attr( $values['mm_annotation_x'][0] ) : '';
   $y = isset( $values['mm_annotation_y'] ) ? esc_attr( $values['mm_annotation_y'][0] ) : '';
@@ -67,10 +66,6 @@ function mm_meta_box_cb( $post ) {
   <div>
       <video id="mm_annotation_source_player" src="" width="320" height="240" controls></video>
       <div id="mm_annotation_position_marker" style="width: 5px; height: 5px; border: 1px solid #00aeef; position: absolute; top: 0px; left: 0px;"></div>
-  </div>
-  <div>
-      <label for="mm_annotation_order">Order (within Shot)</label>
-      <input type="text" name="mm_annotation_order" id="mm_annotation_order" value="<?php echo $order; ?>" size="9" />
   </div>
   <div>
       <label for="mm_annotation_start_timecode">Start Timecode</label>
@@ -324,9 +319,6 @@ function mm_meta_box_save( $post_id ) {
   }
 
   // Actually save data.
-  if ( isset( $_POST['mm_annotation_order'] ) ) {
-    update_post_meta( $post_id, 'mm_annotation_order', esc_attr( $_POST['mm_annotation_order'] ) );
-  }
   if ( isset( $_POST['mm_annotation_start_timecode'] ) ) {
     update_post_meta( $post_id, 'mm_annotation_start_timecode', esc_attr( $_POST['mm_annotation_start_timecode'] ) );
   }
