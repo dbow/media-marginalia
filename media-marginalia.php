@@ -153,6 +153,12 @@ function mm_add_custom_scripts() {
                 mediaElement.setCurrentTime(startTimecodeElement.val());
               }
               mediaElement.addEventListener('timeupdate', checkVideoPlaybackBounds, false);
+              mediaElement.addEventListener('play', function() {
+                var currentTime = video.media.currentTime;
+                if (currentTime < start || currentTime >= end) {
+                  video.setCurrentTime(start);
+                }
+              });
             }, false);
             mediaElement.addEventListener('loadedmetadata', setupTimestampSlider);
           },
