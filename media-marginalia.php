@@ -58,6 +58,7 @@ function mm_meta_box_cb( $post ) {
   $values = get_post_custom( $post->ID );
 
   $start_timecode = isset( $values['mm_annotation_start_timecode'] ) ? esc_attr( $values['mm_annotation_start_timecode'][0] ) : '';
+  $end_timecode = isset( $values['mm_annotation_end_timecode'] ) ? esc_attr( $values['mm_annotation_end_timecode'][0] ) : '';
   $x = isset( $values['mm_annotation_x'] ) ? esc_attr( $values['mm_annotation_x'][0] ) : '';
   $y = isset( $values['mm_annotation_y'] ) ? esc_attr( $values['mm_annotation_y'][0] ) : '';
   $streetview = isset( $values['mm_annotation_streetview'] ) ? esc_attr( $values['mm_annotation_streetview'][0] ) : '';
@@ -70,6 +71,10 @@ function mm_meta_box_cb( $post ) {
   <div>
       <label for="mm_annotation_start_timecode">Start Timecode</label>
       <input type="text" name="mm_annotation_start_timecode" id="mm_annotation_start_timecode" value="<?php echo $start_timecode; ?>" size="9" />
+  </div>
+  <div>
+      <label for="mm_annotation_end_timecode">End Timecode</label>
+      <input type="text" name="mm_annotation_end_timecode" id="mm_annotation_end_timecode" value="<?php echo $end_timecode; ?>" size="9" />
   </div>
   <div>
       <label>Screen Position</label>
@@ -109,14 +114,29 @@ function mm_add_custom_scripts() {
     return;
   }
 
+  wp_enqueue_script('jquery-ui-slider');
+  wp_enqueue_style('jquery-ui-slider',
+                   '//ajax.googleapis.com/ajax/libs/jqueryui/1.11.0/themes/smoothness/jquery-ui.css',
+                   false,
+                   PLUGIN_VERSION,
+                   false);
+
   ?>
+  <style>
+    .mejs-container .mejs-controls .ui-slider div {
+      width: auto;
+      height: auto;
+    }
+  </style>
+
   <script>
 
     jQuery(function() {
 
       // TIMECODE
 
-      var timecodeElement = jQuery('#mm_annotation_start_timecode');
+      var startTimecodeElement = jQuery('#mm_annotation_start_timecode');
+      var endTimecodeElement = jQuery('#mm_annotation_end_timecode');
 
       var videoPath = '<?php echo mm_get_source(); ?>';
       var video;
@@ -129,17 +149,12 @@ function mm_add_custom_scripts() {
           success: function (mediaElement, domObject) {
             mediaElement.addEventListener('loadeddata', function(e) {
               // If form already has timecode, set video to that point.
-              if (timecodeElement.val()) {
-                mediaElement.setCurrentTime(timecodeElement.val());
+              if (startTimecodeElement.val()) {
+                mediaElement.setCurrentTime(startTimecodeElement.val());
               }
-              // Update form field anytime video changes.
-              mediaElement.addEventListener('timeupdate', function(e) {
-                var val = parseInt(timecodeElement.val(), 10);
-                if (val !== mediaElement.currentTime) {
-                  timecodeElement.val(mediaElement.currentTime);
-                }
-              }, false);
+              mediaElement.addEventListener('timeupdate', checkVideoPlaybackBounds, false);
             }, false);
+            mediaElement.addEventListener('loadedmetadata', setupTimestampSlider);
           },
           error: function (e) {
             try {
@@ -148,13 +163,80 @@ function mm_add_custom_scripts() {
           }
         });
 
-        // Update video anytime form field changes.
-        timecodeElement.on('change', function() {
-          var val = parseInt(timecodeElement.val(), 10);
-          if (video && video.currentTime !== val) {
-            video.setCurrentTime(val);
+        var slider;
+        var start;
+        var end;
+        var duration;
+
+        function checkBounds(val, lower, upper) {
+          if (lower !== undefined && val < lower) {
+            val = lower;
+          }
+          if (upper !== undefined && val > upper) {
+            val = upper;
+          }
+          return val;
+        }
+
+        function checkVideoPlaybackBounds() {
+          var currentTime = video.media.currentTime;
+          var target = checkBounds(currentTime, start, end);
+          if (target !== currentTime) {
+            video.setCurrentTime(target);
+            video.pause();
+          }
+        }
+
+        function setupTimestampSlider() {
+          var totalTimeContainer = jQuery('.mejs-time-total');
+          slider = jQuery('<div></div>');
+          slider.css('width', '100%');
+          slider.css('height', 'auto');
+          totalTimeContainer.append(slider);
+
+          start = parseFloat(startTimecodeElement.val()) || 0;
+          end = parseFloat(endTimecodeElement.val()) || video.media.duration;
+          duration = Math.round(video.media.duration * 10) / 10;
+
+          function updateBounds(e, ui) {
+            start = ui.values[0];
+            end = ui.values[1];
+          }
+
+          slider.slider({
+            range: true,
+            min: 0,
+            max: duration,
+            step: 0.1,
+            values: [start, end],
+            slide: function(event, ui) {
+              updateBounds(event, ui);
+              startTimecodeElement.val(start);
+              endTimecodeElement.val(end === duration ? '' : end);
+            },
+            change: updateBounds
+          });
+        }
+
+        startTimecodeElement.on('change', function() {
+          var $this = jQuery(this);
+          var newVal = parseInt($this.val(), 10);
+          var check = checkBounds(newVal, 0, (end || duration) - slider.slider('option', 'step'));
+          slider.slider('values', 0, check);
+          if (check !== newVal) {
+            $this.val(check);
           }
         });
+        endTimecodeElement.on('change', function() {
+          var $this = jQuery(this);
+          var newVal = parseInt($this.val(), 10);
+          var check = checkBounds(newVal, (start || 0) + slider.slider('option', 'step'), duration);
+          slider.slider('values', 1, check);
+          if (check !== newVal) {
+            $this.val(check);
+          }
+        });
+
       }
 
 
@@ -172,7 +254,6 @@ function mm_add_custom_scripts() {
             // convert to 0-padded 4 digit string.
             categoryVal = '000' + categoryVal;
             shotCategory = categoryVal.substr(categoryVal.length - 4);
-            console.log(shotCategory);
             shotChange();
             return false;
           }
@@ -205,7 +286,6 @@ function mm_add_custom_scripts() {
       function positionChange() {
         var x = xEl.val();
         var y = yEl.val();
-        console.log(x, y);
         if (x && y) {
           if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
             posEl.css('top', (y / 100) * video.height + 'px');
@@ -321,6 +401,9 @@ function mm_meta_box_save( $post_id ) {
   // Actually save data.
   if ( isset( $_POST['mm_annotation_start_timecode'] ) ) {
     update_post_meta( $post_id, 'mm_annotation_start_timecode', esc_attr( $_POST['mm_annotation_start_timecode'] ) );
+  }
+  if ( isset( $_POST['mm_annotation_end_timecode'] ) ) {
+    update_post_meta( $post_id, 'mm_annotation_end_timecode', esc_attr( $_POST['mm_annotation_end_timecode'] ) );
   }
   if ( isset( $_POST['mm_annotation_x'] ) ) {
     update_post_meta( $post_id, 'mm_annotation_x', esc_attr( $_POST['mm_annotation_x'] ) );
