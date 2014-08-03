@@ -361,7 +361,7 @@ function mm_add_custom_scripts() {
       };
 
       function parseStreetViewUrl(url) {
-        var re = /www\.google\.com\/maps\/@([^\/]+)\//;
+        var re = /www\.google\.com\/maps.*\/@([^\/]+)\//;
         var streetViewInfo = re.exec(url);
         if (!streetViewInfo) {
           return false;
