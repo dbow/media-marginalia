@@ -37,7 +37,7 @@ function mm_create_post_type() {
     'show_in_nav_menus' => false,
     # TODO(dbow): Add custom icon e.g. 'menu_icon' => '',
     'supports' => array('title', 'editor', 'author'),
-    'taxonomies' => array('post_tag'),
+    'taxonomies' => array('post_tag', 'category'),
     'rewrite' => array('slug' => 'annotations')
     )
   );
@@ -57,7 +57,6 @@ function mm_meta_box_cb( $post ) {
 
   $values = get_post_custom( $post->ID );
 
-  $shot = isset( $values['mm_annotation_shot'] ) ? esc_attr( $values['mm_annotation_shot'][0] ) : '';
   $order = isset( $values['mm_annotation_order'] ) ? esc_attr( $values['mm_annotation_order'][0] ) : '';
   $start_timecode = isset( $values['mm_annotation_start_timecode'] ) ? esc_attr( $values['mm_annotation_start_timecode'][0] ) : '';
   $x = isset( $values['mm_annotation_x'] ) ? esc_attr( $values['mm_annotation_x'][0] ) : '';
@@ -68,14 +67,6 @@ function mm_meta_box_cb( $post ) {
   <div>
       <video id="mm_annotation_source_player" src="" width="320" height="240" controls></video>
       <div id="mm_annotation_position_marker" style="width: 5px; height: 5px; border: 1px solid #00aeef; position: absolute; top: 0px; left: 0px;"></div>
-  </div>
-  <div>
-      <label for="mm_annotation_shot">Shot</label>
-      <select name="mm_annotation_shot" id="mm_annotation_shot">
-        <?php if ($shot) { ?>
-          <option value="<?php echo $shot; ?>" selected><?php echo $shot; ?></option>
-        <?php } ?>
-      </select>
   </div>
   <div>
       <label for="mm_annotation_order">Order (within Shot)</label>
@@ -174,27 +165,32 @@ function mm_add_custom_scripts() {
 
       // SHOT
 
-      var NUM_SHOTS = 15;
-      var SHOT_START = 2; // TODO(dbow): can update when 0001 is up.
-      var shotSelect = jQuery('#mm_annotation_shot');
+      var shotCategory = '';
 
-      // Add options to shot select element.
-      var selectedShot = shotSelect.val();
-      var shot;
-      for (var i = SHOT_START; i < NUM_SHOTS; i++) {
-        // Convert integer to 0-padded string of 4 characters.
-        shot = '000' + i;
-        shot = shot.substr(shot.length - 4);
-        // If option is already selected, it will be in the select box already.
-        if (shot === selectedShot) {
-          return;
-        }
-        var shotOption = jQuery('<option></option>');
-        shotSelect.append(shotOption.val(shot).text(shot));
+      jQuery('#categorychecklist').on('change', 'input', checkForShot);
+
+      function checkForShot() {
+        var categoryTest = /^\d{1,4}$/g; // Matches 1-4 digit strings
+        jQuery('[type="checkbox"][name="post_category[]"]:checked').each(function() {
+          var categoryVal = jQuery(this).val();
+          if (categoryTest.test(categoryVal)) {
+            // convert to 0-padded 4 digit string.
+            categoryVal = '000' + categoryVal;
+            shotCategory = categoryVal.substr(categoryVal.length - 4);
+            console.log(shotCategory);
+            shotChange();
+            return false;
+          }
+        });
       }
 
-      function videoUpdate() {
-        var newVideo = videoPath + shotSelect.val() + '.mp4';
+      checkForShot();
+
+      function shotChange() {
+        if (!shotCategory) {
+          return;
+        }
+        var newVideo = videoPath + shotCategory + '.mp4';
         if (!video) {
           jQuery('#mm_annotation_source_player').attr('src', newVideo);
           setupVideo();
@@ -202,9 +198,7 @@ function mm_add_custom_scripts() {
           video.setSrc(newVideo);
         }
       }
-      shotSelect.on('change', videoUpdate);
 
-      videoUpdate();
 
       // SCREEN POSITION
       // Highlights the X/Y coordinate over top of the source video.
@@ -330,9 +324,6 @@ function mm_meta_box_save( $post_id ) {
   }
 
   // Actually save data.
-  if ( isset( $_POST['mm_annotation_shot'] ) ) {
-    update_post_meta( $post_id, 'mm_annotation_shot', esc_attr( $_POST['mm_annotation_shot'] ) );
-  }
   if ( isset( $_POST['mm_annotation_order'] ) ) {
     update_post_meta( $post_id, 'mm_annotation_order', esc_attr( $_POST['mm_annotation_order'] ) );
   }
