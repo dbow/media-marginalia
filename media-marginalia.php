@@ -64,8 +64,8 @@ function mm_meta_box_cb( $post ) {
   $streetview = isset( $values['mm_annotation_streetview'] ) ? esc_attr( $values['mm_annotation_streetview'][0] ) : '';
 
   ?>
-  <div>
-      <video id="mm_annotation_source_player" src="" width="320" height="240" controls></video>
+  <div style="width: 320px; height: 240px;">
+      <video id="mm_annotation_source_player" style="width: 100%; height: 100%;" src="" width="320" height="240" controls></video>
       <div id="mm_annotation_position_marker" style="width: 5px; height: 5px; border: 1px solid #00aeef; position: absolute; top: 0px; left: 0px;"></div>
   </div>
   <div>
@@ -147,8 +147,10 @@ function mm_add_custom_scripts() {
         video = new MediaElementPlayer('#mm_annotation_source_player', {
           alwaysShowControls: true,
           enableKeyboard: true,
-          videoWidth: 320,
+          defaultVideoHeight: 240,
+          defaultVideoWidth: 320,
           videoHeight: 240,
+          videoWidth: 320,
           success: function (mediaElement, domObject) {
             mediaElement.addEventListener('loadeddata', function(e) {
               // If form already has timecode, set video to that point.
@@ -191,8 +193,8 @@ function mm_add_custom_scripts() {
           var currentTime = video.media.currentTime;
           var target = checkBounds(currentTime, start, end);
           if (target !== currentTime) {
-            video.setCurrentTime(target);
             video.pause();
+            video.setCurrentTime(target);
           }
         }
 
