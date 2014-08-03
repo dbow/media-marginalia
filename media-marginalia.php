@@ -66,7 +66,7 @@ function mm_meta_box_cb( $post ) {
 
   ?>
   <div>
-      <video id="mm_annotation_source_player" src="<?php echo mm_get_source(); ?>" width="320" height="240" controls></video>
+      <video id="mm_annotation_source_player" src="" width="320" height="240" controls></video>
       <div id="mm_annotation_position_marker" style="width: 5px; height: 5px; border: 1px solid #00aeef; position: absolute; top: 0px; left: 0px;"></div>
   </div>
   <div>
@@ -132,99 +132,79 @@ function mm_add_custom_scripts() {
 
       var timecodeElement = jQuery('#mm_annotation_start_timecode');
 
-      var video = new MediaElement('mm_annotation_source_player', {
-        alwaysShowControls: true,
-        enableKeyboard: true,
-        success: function (mediaElement, domObject) {
-          mediaElement.addEventListener('loadeddata', function(e) {
-            // If form already has timecode, set video to that point.
-            if (timecodeElement.val()) {
-              mediaElement.setCurrentTime(timecodeElement.val());
-            }
-            // Update form field anytime video changes.
-            mediaElement.addEventListener('timeupdate', function(e) {
-              var val = parseInt(timecodeElement.val(), 10);
-              if (val !== mediaElement.currentTime) {
-                timecodeElement.val(mediaElement.currentTime);
+      var videoPath = '<?php echo mm_get_source(); ?>';
+      var video;
+      function setupVideo() {
+        video = new MediaElementPlayer('#mm_annotation_source_player', {
+          alwaysShowControls: true,
+          enableKeyboard: true,
+          videoWidth: 320,
+          videoHeight: 240,
+          success: function (mediaElement, domObject) {
+            mediaElement.addEventListener('loadeddata', function(e) {
+              // If form already has timecode, set video to that point.
+              if (timecodeElement.val()) {
+                mediaElement.setCurrentTime(timecodeElement.val());
               }
+              // Update form field anytime video changes.
+              mediaElement.addEventListener('timeupdate', function(e) {
+                var val = parseInt(timecodeElement.val(), 10);
+                if (val !== mediaElement.currentTime) {
+                  timecodeElement.val(mediaElement.currentTime);
+                }
+              }, false);
             }, false);
-          }, false);
-        },
-        error: function (e) {
-          try {
-            console.log('Error! ' + e);
-          } catch (e) {}
-        }
-      });
+          },
+          error: function (e) {
+            try {
+              console.log('Error! ' + e);
+            } catch (e) {}
+          }
+        });
 
-      // Update video anytime form field changes.
-      timecodeElement.on('change', function() {
-        var val = parseInt(timecodeElement.val(), 10);
-        if (video && video.currentTime !== val) {
-          video.setCurrentTime(val);
-        }
-      });
+        // Update video anytime form field changes.
+        timecodeElement.on('change', function() {
+          var val = parseInt(timecodeElement.val(), 10);
+          if (video && video.currentTime !== val) {
+            video.setCurrentTime(val);
+          }
+        });
+      }
 
 
       // SHOT
 
-      // Get shots from google spreadsheet
-      var SHOTS = [];
+      var NUM_SHOTS = 15;
+      var SHOT_START = 2; // TODO(dbow): can update when 0001 is up.
+      var shotSelect = jQuery('#mm_annotation_shot');
 
-      var requestDataFromSpreadsheet = function() {
-        var key = '10fRfd40j_bdieQuqDrUxMoS4hFvGX3Fdb98YdC9af9A',
-            url = '//spreadsheets.google.com/feeds/cells/' +
-            key + '/od6/public/basic?alt=json-in-script&callback=_handleShotData';
-        // Via JSONP.
-        var script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = url;
-        jQuery(document.body).append(script);
-      };
-
-      window._handleShotData = function(data) {
-        data = data.feed && data.feed.entry;
-        if (!data || !data.length) {
+      // Add options to shot select element.
+      var selectedShot = shotSelect.val();
+      var shot;
+      for (var i = SHOT_START; i < NUM_SHOTS; i++) {
+        // Convert integer to 0-padded string of 4 characters.
+        shot = '000' + i;
+        shot = shot.substr(shot.length - 4);
+        // If option is already selected, it will be in the select box already.
+        if (shot === selectedShot) {
           return;
         }
+        var shotOption = jQuery('<option></option>');
+        shotSelect.append(shotOption.val(shot).text(shot));
+      }
 
-        // Parse response.
-        var contents,
-            cell,
-            row,
-            column,
-            value;
-
-        for (var i = 0, len = data.length; i < len; i++) {
-          contents = data[i];
-          cell = contents.title.$t; // e.g. "A1" or "C3".
-          row = parseInt(cell.replace(/[a-zA-Z]/g, ''), 10); // Replace letters to get row e.g. 1 or 3.
-          // Only handle rows other than header.
-          if (row > 1) {
-            column = cell.replace(/[0-9]/g, ''); // Replace numbers to get column e.g. "A" or "C".
-            value = contents.content.$t; // Get value of cell.
-            if (column === 'A') {
-              // Put shot #s in SHOTS array.
-              SHOTS.push(value);
-            }
-          }
+      function videoUpdate() {
+        var newVideo = videoPath + shotSelect.val() + '.mp4';
+        if (!video) {
+          jQuery('#mm_annotation_source_player').attr('src', newVideo);
+          setupVideo();
+        } else {
+          video.setSrc(newVideo);
         }
+      }
+      shotSelect.on('change', videoUpdate);
 
-        // Add options to shot select element.
-        var shotSelect = jQuery('#mm_annotation_shot');
-        var selectedShot = shotSelect.val();
-        jQuery.each(SHOTS, function(i, shot) {
-          // If option is already selected, it will be in the select box already.
-          if (shot === selectedShot) {
-            return;
-          }
-          var shotOption = jQuery('<option></option>');
-          shotSelect.append(shotOption.val(shot).text(shot));
-        });
-      };
-
-      requestDataFromSpreadsheet();
-
+      videoUpdate();
 
       // SCREEN POSITION
       // Highlights the X/Y coordinate over top of the source video.
