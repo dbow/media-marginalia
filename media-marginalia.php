@@ -226,18 +226,20 @@ function mm_add_custom_scripts() {
 
         startTimecodeElement.on('change', function() {
           var $this = jQuery(this);
-          var newVal = parseInt($this.val(), 10);
+          var newVal = parseFloat($this.val());
           var check = checkBounds(newVal, 0, (end || duration) - slider.slider('option', 'step'));
           slider.slider('values', 0, check);
+          video.setCurrentTime(check);
           if (check !== newVal) {
             $this.val(check);
           }
         });
         endTimecodeElement.on('change', function() {
           var $this = jQuery(this);
-          var newVal = parseInt($this.val(), 10);
+          var newVal = parseFloat($this.val());
           var check = checkBounds(newVal, (start || 0) + slider.slider('option', 'step'), duration);
           slider.slider('values', 1, check);
+          video.setCurrentTime(check);
           if (check !== newVal) {
             $this.val(check);
           }
@@ -336,8 +338,8 @@ function mm_add_custom_scripts() {
         streetViewInfo = streetViewInfo[1].split(',');
         streetViewParams.location = streetViewInfo[0] + ',' + streetViewInfo[1];
         streetViewParams.fov = parseInt(streetViewInfo[3].replace('y', ''), 10);
-        streetViewParams.heading = parseInt(streetViewInfo[4].replace('h', ''), 10);
-        streetViewParams.pitch = 90 - parseInt(streetViewInfo[5].replace('t', ''), 10);
+        streetViewParams.heading = parseFloat(streetViewInfo[4].replace('h', ''));
+        streetViewParams.pitch = 90 - parseFloat(streetViewInfo[5].replace('t', ''));
         return true;
       }
 
