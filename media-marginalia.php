@@ -71,11 +71,14 @@ function mm_meta_box_cb( $post ) {
   <div>
       <label for="mm_annotation_start_timecode">Start Timecode</label>
       <input type="text" name="mm_annotation_start_timecode" id="mm_annotation_start_timecode" value="<?php echo $start_timecode; ?>" size="9" />
+      <button id="set-start-button">Use current timecode</button>
   </div>
   <div>
       <label for="mm_annotation_end_timecode">End Timecode</label>
       <input type="text" name="mm_annotation_end_timecode" id="mm_annotation_end_timecode" value="<?php echo $end_timecode; ?>" size="9" />
+      <button id="set-end-button">Use current timecode</button>
   </div>
+  <div id="timecode-button-message"></div>
   <div>
       <label>Screen Position</label>
       <span class="description">in percent from the top left [0 - 100].</span>
@@ -243,6 +246,34 @@ function mm_add_custom_scripts() {
           if (check !== newVal) {
             $this.val(check);
           }
+        });
+
+
+        jQuery('#set-start-button').on('click', function(e) {
+          var msg = '';
+          if (video.media.paused) {
+            var t = video.media.currentTime;
+            var check = checkBounds(t, 0, (end || duration) - slider.slider('option', 'step'));
+            slider.slider('values', 0, check);
+            startTimecodeElement.val(check);
+          } else {
+            msg = 'You must be paused to use the current timestamp';
+          }
+          jQuery('#timecode-button-message').text(msg);
+          e.preventDefault();
+        });
+        jQuery('#set-end-button').on('click', function(e) {
+          var msg = '';
+          if (video.media.paused) {
+            var t = video.media.currentTime;
+            var check = checkBounds(t, (start || 0) + slider.slider('option', 'step'), duration);
+            slider.slider('values', 1, check);
+            endTimecodeElement.val(check);
+          } else {
+            msg = 'You must be paused to use the current timestamp';
+          }
+          jQuery('#timecode-button-message').text(msg);
+          e.preventDefault();
         });
 
       }
