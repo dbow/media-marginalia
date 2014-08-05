@@ -17,6 +17,7 @@ Download the ZIP into the wp-content/plugins directory.
 In the directory of your theme (e.g. twentyfourteen) within the wordpress themes directory, type the following commands to symlink to the custom SHOTS category templates:
 
 ```ln -s ../../plugins/media-marginalia/category-shots.php category-shots.php```
+
 ```ln -s ../../plugins/media-marginalia/content-shot.php content-shot.php```
 
 Every specific shot category (e.g. 0001, 0002, etc.) must have its parent set to a SHOTS (slug=shots) category to tell it to use the above symlinked templates.
