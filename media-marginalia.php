@@ -466,3 +466,48 @@ function mm_meta_box_save( $post_id ) {
     update_post_meta( $post_id, 'mm_annotation_streetview', esc_attr( $_POST['mm_annotation_streetview'] ) );
   }
 }
+
+
+# ADD ANNOTATIONS BY DEFAULT TO CATEGORY PAGES
+function add_custom_types_to_tax( $query ) {
+  if( is_category() || is_tag() && empty( $query->query_vars['suppress_filters'] ) ) {
+    // Get all your post types
+    $post_types = array('post', 'mm_annotation');
+
+    $query->set('post_type', $post_types);
+    return $query;
+  }
+}
+add_filter('pre_get_posts', 'add_custom_types_to_tax');
+
+
+# CUSTOM TEMPLATE FOR SHOT-LIKE CATEGORIES
+function load_shot_template($template) {
+    $category_id = absint(get_query_var('cat'));
+    $category = get_category($category_id);
+
+    $templates = array();
+
+    if ( !is_wp_error($category) )
+        $templates[] = "category-{$category->slug}.php";
+
+    $templates[] = "category-$cat_ID.php";
+
+    // trace back the parent hierarchy and locate a template
+    if ( !is_wp_error($category) ) {
+      $category = $category->parent ? get_category($category->parent) : '';
+
+      if(!empty($category)) {
+        if (!is_wp_error($category)) {
+          $templates[] = "category-{$category->slug}.php";
+        }
+        $templates[] = "category-{$category->term_id}.php";
+      }
+    }
+
+    $templates[] = "category.php";
+    $template = locate_template($templates);
+
+    return $template;
+}
+add_action('category_template', 'load_shot_template');
