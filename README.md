@@ -7,6 +7,11 @@ Media Marginalia is a Wordpress Plugin that takes the concept of textual margina
 It provides an interface to create/read/update/delete multi-media (text/video/audio) annotations for a given media file (video/audio).
 
 
+# Install #
+
+Download the ZIP into the wp-content/plugins directory.
+
+
 # Shot Category View #
 
 In the directory of your theme (e.g. twentyfourteen) within the wordpress themes directory, type the following commands to symlink to the custom SHOTS category templates:
