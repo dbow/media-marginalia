@@ -3,6 +3,10 @@
  * The template for displaying SHOT category pages
  */
 
+# TODO(dbow): This feels real wrong but not sure how to pass the category into "the loop"...
+global $shot_category;
+$shot_category = single_cat_title( '', false );
+
 get_header(); ?>
 
   <style>
