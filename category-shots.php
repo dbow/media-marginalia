@@ -1,56 +1,83 @@
 <?php
 /**
- * The template for displaying Category pages
- *
- * @link http://codex.wordpress.org/Template_Hierarchy
- *
- * @package WordPress
- * @subpackage Twenty_Fourteen
- * @since Twenty Fourteen 1.0
+ * The template for displaying SHOT category pages
  */
 
 get_header(); ?>
 
-	<section id="primary" class="content-area">
-		<div id="content" class="site-content" role="main">
+  <style>
+    #content {
+      position: relative;
+    }
+    .archive-header {
+      text-align: center;
+    }
+    .archive-title {
+      font-size: 22px;
+    }
+    .shot-nav {
+      position: absolute;
+      left: 0px;
+      right: 0px;
+      top: 5px;
+    }
+    .shot-nav a {
+      position: absolute;
+    }
+    .previous-shot {
+      left: 100px;
+    }
+    .next-shot {
+      right: 100px;
+    }
+  </style>
 
-			<?php if ( have_posts() ) : ?>
+  <section id="primary" class="content-area">
+    <div id="content" class="site-content" role="main">
 
-			<header class="archive-header">
-				<h1 class="archive-title"><?php printf( __( 'Category Archives: %s', 'twentyfourteen' ), single_cat_title( '', false ) ); ?></h1>
+      <?php if ( have_posts() ) : ?>
 
-				<?php
-					// Show an optional term description.
-					$term_description = term_description();
-					if ( ! empty( $term_description ) ) :
-						printf( '<div class="taxonomy-description">%s</div>', $term_description );
-					endif;
-				?>
-			</header><!-- .archive-header -->
+      <header class="archive-header">
+        <h1 class="archive-title"><?php printf( __( 'Shot #%s', 'twentyfourteen' ), single_cat_title( '', false ) ); ?></h1>
 
-			<?php
-					// Start the Loop.
-					while ( have_posts() ) : the_post();
 
-					/*
-					 * Include the post format-specific template for the content. If you want to
-					 * use this in a child theme, then include a file called called content-___.php
-					 * (where ___ is the post format) and that will be used instead.
-					 */
-					get_template_part( 'content', 'shot' );
+        <nav class="shot-nav">
+          <a class="previous-shot" href="?cat=<?php echo (single_cat_title( '', false ) - 1); ?>">previous shot</a>
+          <a class="next-shot" href="?cat=<?php echo (single_cat_title( '', false ) + 1); ?>">next shot</a>
+        </nav>
 
-					endwhile;
-					// Previous/next page navigation.
-					twentyfourteen_paging_nav();
+        <?php
+          // Show an optional term description.
+          $term_description = term_description();
+          if ( ! empty( $term_description ) ) :
+            printf( '<div class="taxonomy-description">%s</div>', $term_description );
+          endif;
+        ?>
+      </header><!-- .archive-header -->
 
-				else :
-					// If no content, include the "No posts found" template.
-					get_template_part( 'content', 'none' );
+      <?php
+          // Start the Loop.
+          while ( have_posts() ) : the_post();
 
-				endif;
-			?>
-		</div><!-- #content -->
-	</section><!-- #primary -->
+          /*
+           * Include the post format-specific template for the content. If you want to
+           * use this in a child theme, then include a file called called content-___.php
+           * (where ___ is the post format) and that will be used instead.
+           */
+          get_template_part( 'content', 'shot' );
+
+          endwhile;
+          // Previous/next page navigation.
+          twentyfourteen_paging_nav();
+
+        else :
+          // If no content, include the "No posts found" template.
+          get_template_part( 'content', 'none' );
+
+        endif;
+      ?>
+    </div><!-- #content -->
+  </section><!-- #primary -->
 
 <?php
 get_sidebar( 'content' );
