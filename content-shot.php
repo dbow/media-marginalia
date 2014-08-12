@@ -33,6 +33,11 @@
     <video id="" style="width: 100%; height: 100%;" src="<?php echo mm_get_source(); global $shot_category; echo $shot_category; ?>.mp4" width="320" height="240" controls></video>
   </div>
 
+  <div class="entry-author">
+    <?php echo get_avatar( get_the_author_meta( 'ID' ), 32 ); ?>
+    <?php the_author_posts_link(); ?>
+  </div>
+
   <div class="entry-content">
     <?php
       the_content( __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'twentyfourteen' ) );
