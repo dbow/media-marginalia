@@ -43,17 +43,28 @@
         'link_after'  => '</span>',
       ) );
   ?>
-  <div class="custom-fields">
+  <img id="streetViewImage-<?php the_ID(); ?>"></img>
+  <script>
     <?php
       $custom_fields = get_post_custom(get_the_ID());
-
       $street_view = $custom_fields['mm_annotation_streetview'];
+      echo 'var streetViewUrls = [';
       foreach ( $street_view as $key => $value ) {
-        echo 'Street View URL: ' . $value . '<br />';
+        echo '"' . $value . '",';
       }
-
+      echo '];';
     ?>
-  </div>
+    var params = streetViewUrls.length &&
+                 _MM.StreetView.parseStreetViewUrl(streetViewUrls[0]);
+
+    // Show the Street View Image for the given URL.
+    if (params) {
+      // Set image SRC to street view URL and show image.
+      jQuery('#streetViewImage-<?php the_ID(); ?>').attr('src',
+          _MM.StreetView.buildStreetViewAPIUrl(params)).show();
+    }
+
+  </script>
 
   </div><!-- .entry-content -->
 

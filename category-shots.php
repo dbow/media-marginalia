@@ -7,6 +7,9 @@
 global $shot_category;
 $shot_category = single_cat_title( '', false );
 
+wp_enqueue_script('streetview',
+                  plugins_url('js/streetview.js', __FILE__));
+
 get_header(); ?>
 
   <style>
