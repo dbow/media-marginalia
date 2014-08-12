@@ -15,12 +15,6 @@ function mm_get_source() {
   return '';
 }
 
-# SET GOOGLE MAPS API KEY.
-function mm_get_gmaps_api_key() {
-  return '';
-}
-
-
 # CREATE ANNOTATION CUSTOM POST TYPE.
 
 add_action( 'init', 'mm_create_post_type' );
@@ -124,7 +118,8 @@ function mm_add_custom_scripts() {
                    false,
                    PLUGIN_VERSION,
                    false);
-
+  wp_enqueue_script('streetview',
+                    plugins_url('js/streetview.js', __FILE__));
   ?>
   <style>
     .mejs-container .mejs-controls .ui-slider div {
@@ -354,58 +349,18 @@ function mm_add_custom_scripts() {
 
       // LATITUDE / LONGITUDE
 
-      // Google Street View API Integration
-      // Shows Street View Image of current lat/long coordinates.
-      // https://developers.google.com/maps/documentation/streetview/
-
-      var STREET_VIEW_HOST = '//maps.googleapis.com/maps/api/streetview?';
-      var apiKey = '<?php echo mm_get_gmaps_api_key(); ?>';
-      var protocol = apiKey ? 'https:' : ''; // Must be https with API key.
-
-      // Typical street view URL:
-      // https://www.google.com/maps/@40.709973,-73.950954,3a,75y,97.1h,96.71t/data=!3m4!1e1!3m2!1sVVz-u8IKFVY8DMJ1ZJHnQg!2e0
-      // /@[latitude],[longitude],[unknown],[fov]y,[heading]h,[pitch + 90]t/
-
-      // Map of param key to value.
-      var streetViewParams = {
-        size: '200x200',
-        sensor: 'false'
-      };
-
-      function parseStreetViewUrl(url) {
-        var re = /www\.google\.com\/maps.*\/@([^\/]+)\//;
-        var streetViewInfo = re.exec(url);
-        if (!streetViewInfo) {
-          return false;
-        }
-        streetViewInfo = streetViewInfo[1].split(',');
-        streetViewParams.location = streetViewInfo[0] + ',' + streetViewInfo[1];
-        streetViewParams.fov = parseInt(streetViewInfo[3].replace('y', ''), 10);
-        streetViewParams.heading = parseFloat(streetViewInfo[4].replace('h', ''));
-        streetViewParams.pitch = 90 - parseFloat(streetViewInfo[5].replace('t', ''));
-        return true;
-      }
-
       var streetViewUrl = jQuery('#mm_annotation_streetview');
       var locationImage = jQuery('#mm_location_img');
 
       function locationChange() {
         var url = streetViewUrl.val();
+        var params = _MM.StreetView.parseStreetViewUrl(url);
 
         // Show the Street View Image for the given URL.
-        if (url && parseStreetViewUrl(url)) {
-          // Assemble URL.
-          var params = [];
-          for (var param in streetViewParams) {
-            params.push(param + '=' + streetViewParams[param]);
-          }
-          if (apiKey) {
-            params.push('key=' + apiKey);
-          }
+        if (url && params) {
           // Set image SRC to street view URL and show image.
           locationImage.attr('src',
-              protocol + STREET_VIEW_HOST + params.join('&')).show();
-
+              _MM.StreetView.buildStreetViewAPIUrl(params)).show();
         // If there isn't a valid URL, hide the image.
         } else {
           locationImage.hide();
