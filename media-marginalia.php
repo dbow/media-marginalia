@@ -186,6 +186,11 @@ function mm_add_custom_scripts() {
         }
 
         function checkVideoPlaybackBounds() {
+          if (!video.media.readyState) {
+            // 0 means setCurrentTime will throw an error because there is no
+            // playable resource yet.
+            return;
+          }
           var currentTime = video.media.currentTime;
           var target = checkBounds(currentTime, start, end);
           if (target !== currentTime) {
@@ -194,7 +199,12 @@ function mm_add_custom_scripts() {
           }
         }
 
+        var sliderSetup = false;
         function setupTimestampSlider() {
+          if (sliderSetup) {
+            // Only do this once.
+            return;
+          }
           var totalTimeContainer = jQuery('.mejs-time-total');
           slider = jQuery('<div></div>');
           slider.css('width', '100%');
@@ -223,6 +233,8 @@ function mm_add_custom_scripts() {
             },
             change: updateBounds
           });
+
+          sliderSetup = true;
         }
 
         startTimecodeElement.on('change', function() {
