@@ -286,7 +286,7 @@ function mm_add_custom_scripts() {
       function checkForShot() {
         var categoryTest = /^\d{1,4}$/g; // Matches 1-4 digit strings
         jQuery('[type="checkbox"][name="post_category[]"]:checked').each(function() {
-          var categoryVal = jQuery(this).val();
+          var categoryVal = jQuery(this).parent().text().trim();
           if (categoryTest.test(categoryVal)) {
             // convert to 0-padded 4 digit string.
             categoryVal = '000' + categoryVal;
