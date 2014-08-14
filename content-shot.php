@@ -29,8 +29,22 @@
     </div><!-- .entry-meta -->
   </header><!-- .entry-header -->
 
+  <?php
+    $custom_fields = get_post_custom(get_the_ID());
+    $start_timecode = $custom_fields['mm_annotation_start_timecode'];
+    foreach ( $start_timecode as $key => $value ) {
+      $start_timecode = $value;
+    }
+    $end_timecode = $custom_fields['mm_annotation_end_timecode'];
+    foreach ( $end_timecode as $key => $value ) {
+      $end_timecode = $value;
+    }
+
+    // Use the timestamp bounds param to limit video playback. e.g. #t=10,20
+  ?>
+
   <div id="video_container" style="width: 320px; height: 240px; position: relative; left: 120px;">
-    <video id="" style="width: 100%; height: 100%;" src="<?php echo mm_get_source(); global $shot_category; echo $shot_category; ?>.mp4" width="320" height="240" controls></video>
+    <video id="" style="width: 100%; height: 100%;" src="<?php echo mm_get_source(); global $shot_category; echo $shot_category; ?>.mp4#t=<?php echo $start_timecode . ',' . $end_timecode; ?>" width="320" height="240" controls></video>
   </div>
 
   <div class="entry-author">
@@ -51,7 +65,6 @@
   <img id="streetViewImage-<?php the_ID(); ?>"></img>
   <script>
     <?php
-      $custom_fields = get_post_custom(get_the_ID());
       $street_view = $custom_fields['mm_annotation_streetview'];
       echo 'var streetViewUrls = [';
       foreach ( $street_view as $key => $value ) {
