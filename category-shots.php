@@ -37,6 +37,32 @@ get_header(); ?>
     .next-shot {
       right: 100px;
     }
+    .group:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+    .entry-author {
+      margin: 0 auto;
+      width: 100%;
+      text-align: center;
+    }
+    .video-and-streetview {
+      position: relative;
+      width: 100%;
+      margin-top: 15px;
+      margin-bottom: 20px;
+    }
+    .video-container {
+      width: 320px;
+      height: 240px;
+      float: left;
+      margin-left: 170px;
+    }
+    .streetview-container {
+      float: left;
+      margin-left: 70px;
+    }
   </style>
 
   <section id="primary" class="content-area">

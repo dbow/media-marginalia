@@ -24,12 +24,14 @@ _MM.StreetView = (function() {
      * Extracts latitude, longitude, fov, heading, and pitch.
      *
      * @param {string} url of Google Street View image to parse.
+     * @param {string=} opt_size Optional size string to use.
+     *
      * @return {Object} with parsed query params for Google Street View API.
      */
-    parseStreetViewUrl: function(url) {
+    parseStreetViewUrl: function(url, opt_size) {
       // Map of param key to value.
       var streetViewParams = {
-        size: '200x200',
+        size: opt_size || '200x200',
         sensor: 'false'
       };
 

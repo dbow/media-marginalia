@@ -29,6 +29,11 @@
     </div><!-- .entry-meta -->
   </header><!-- .entry-header -->
 
+  <div class="entry-author">
+    <?php echo get_avatar( get_the_author_meta( 'ID' ), 32 ); ?>
+    <?php the_author_posts_link(); ?>
+  </div>
+
   <?php
     $custom_fields = get_post_custom(get_the_ID());
     $start_timecode = $custom_fields['mm_annotation_start_timecode'];
@@ -43,13 +48,32 @@
     // Use the timestamp bounds param to limit video playback. e.g. #t=10,20
   ?>
 
-  <div id="video_container" style="width: 320px; height: 240px; position: relative; left: 120px;">
-    <video id="" style="width: 100%; height: 100%;" src="<?php echo mm_get_source(); global $shot_category; echo $shot_category; ?>.mp4#t=<?php echo $start_timecode . ',' . $end_timecode; ?>" width="320" height="240" controls></video>
-  </div>
+  <div class="video-and-streetview group">
+    <div id="video-container-<?php the_ID(); ?>" class="video-container">
+      <video id="" style="width: 100%; height: 100%;" src="<?php echo mm_get_source(); global $shot_category; echo $shot_category; ?>.mp4#t=<?php echo $start_timecode . ',' . $end_timecode; ?>" width="320" height="240" controls></video>
+    </div>
+    <div class="streetview-container">
+      <img id="streetview-image-<?php the_ID(); ?>"></img>
+      <script>
+        <?php
+          $street_view = $custom_fields['mm_annotation_streetview'];
+          echo 'var streetViewUrls = [';
+          foreach ( $street_view as $key => $value ) {
+            echo '"' . $value . '",';
+          }
+          echo '];';
+        ?>
+        var params = streetViewUrls.length &&
+                     _MM.StreetView.parseStreetViewUrl(streetViewUrls[0], '320x240');
 
-  <div class="entry-author">
-    <?php echo get_avatar( get_the_author_meta( 'ID' ), 32 ); ?>
-    <?php the_author_posts_link(); ?>
+        // Show the Street View Image for the given URL.
+        if (params) {
+          // Set image SRC to street view URL and show image.
+          jQuery('#streetview-image-<?php the_ID(); ?>').attr('src',
+              _MM.StreetView.buildStreetViewAPIUrl(params)).show();
+        }
+      </script>
+    </div>
   </div>
 
   <div class="entry-content">
@@ -62,27 +86,6 @@
         'link_after'  => '</span>',
       ) );
   ?>
-  <img id="streetViewImage-<?php the_ID(); ?>"></img>
-  <script>
-    <?php
-      $street_view = $custom_fields['mm_annotation_streetview'];
-      echo 'var streetViewUrls = [';
-      foreach ( $street_view as $key => $value ) {
-        echo '"' . $value . '",';
-      }
-      echo '];';
-    ?>
-    var params = streetViewUrls.length &&
-                 _MM.StreetView.parseStreetViewUrl(streetViewUrls[0]);
-
-    // Show the Street View Image for the given URL.
-    if (params) {
-      // Set image SRC to street view URL and show image.
-      jQuery('#streetViewImage-<?php the_ID(); ?>').attr('src',
-          _MM.StreetView.buildStreetViewAPIUrl(params)).show();
-    }
-
-  </script>
 
   </div><!-- .entry-content -->
 
