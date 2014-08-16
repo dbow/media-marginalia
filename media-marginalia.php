@@ -195,33 +195,22 @@ function add_custom_types_to_tax( $query ) {
 add_filter('pre_get_posts', 'add_custom_types_to_tax');
 
 
-# CUSTOM TEMPLATE FOR SHOT-LIKE CATEGORIES
-function load_shot_template($template) {
-    $category_id = absint(get_query_var('cat'));
-    $category = get_category($category_id);
-
-    $templates = array();
-
-    if ( !is_wp_error($category) )
-        $templates[] = "category-{$category->slug}.php";
-
-    $templates[] = "category-$cat_ID.php";
-
-    // trace back the parent hierarchy and locate a template
-    if ( !is_wp_error($category) ) {
-      $category = $category->parent ? get_category($category->parent) : '';
-
-      if(!empty($category)) {
-        if (!is_wp_error($category)) {
-          $templates[] = "category-{$category->slug}.php";
-        }
-        $templates[] = "category-{$category->term_id}.php";
+# Applies the category-shots template when the category slug is numeric.
+function applyShotTemplate() {
+  if (is_category()) {
+    if (get_query_var('cat')) {
+      $cat = get_category (get_query_var('cat'));
+      $slug = $cat->slug;
+      if (is_numeric($slug)) {
+        load_template( dirname( __FILE__ ) . '/category-shots.php' );
+      } else {
+        // Otherwise load default category template for theme.
+        load_template( locate_template( 'category.php' ) );
       }
+      exit;
     }
-
-    $templates[] = "category.php";
-    $template = locate_template($templates);
-
-    return $template;
+  }
 }
-add_action('category_template', 'load_shot_template');
+
+add_action('template_redirect', 'applyShotTemplate');
+
