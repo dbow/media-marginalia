@@ -95,8 +95,8 @@ get_header(); ?>
 
 
         <nav class="shot-nav">
-          <a class="previous-shot" href="?cat=<?php echo (single_cat_title( '', false ) - 1); ?>">previous shot</a>
-          <a class="next-shot" href="?cat=<?php echo (single_cat_title( '', false ) + 1); ?>">next shot</a>
+          <a class="previous-shot" href="<?php echo get_category_link( get_category_by_slug(sprintf('%04d', (single_cat_title( '', false ) - 1)))->term_id ); ?>">previous shot</a>
+          <a class="next-shot" href="<?php echo get_category_link( get_category_by_slug(sprintf('%04d', (single_cat_title( '', false ) + 1)))->term_id ); ?>">next shot</a>
         </nav>
 
         <?php
