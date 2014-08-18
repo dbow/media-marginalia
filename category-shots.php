@@ -59,6 +59,15 @@ get_header(); ?>
       float: left;
       margin-left: 170px;
     }
+    .timecodes {
+      position: absolute;
+      top: 240px;
+      width: 320px;
+      text-align: center;
+    }
+    .timecodes span {
+      margin: 0 10px;
+    }
     .streetview-container {
       float: left;
       margin-left: 70px;
@@ -109,6 +118,23 @@ get_header(); ?>
 
         endif;
       ?>
+      <script>
+        jQuery('video').each(function() {
+          this.addEventListener('pause', function() {
+            this.currentTime = this.dataset.startTimestamp || this.played.start(0);
+            this.play();
+          }, true);
+          this.addEventListener('timeupdate', function() {
+            var idParts = this.parentElement.id.split('-');
+            var id = idParts[idParts.length - 1];
+            jQuery('#current-time-' + id).text(this.currentTime);
+            if (this.dataset.endTimestamp && this.currentTime >= this.dataset.endTimestamp) {
+              this.pause();
+            }
+          }, true);
+        });
+
+      </script>
     </div><!-- #content -->
   </section><!-- #primary -->
 

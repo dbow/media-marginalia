@@ -50,7 +50,12 @@
 
   <div class="video-and-streetview group">
     <div id="video-container-<?php the_ID(); ?>" class="video-container">
-      <video id="" style="width: 100%; height: 100%;" src="<?php echo mm_get_source(); global $shot_category; echo $shot_category; ?>.mp4#t=<?php echo $start_timecode . ',' . $end_timecode; ?>" width="320" height="240" controls></video>
+      <video style="width: 100%; height: 100%;" data-start-timestamp="<?php echo $start_timecode; ?>" data-end-timestamp="<?php echo $end_timecode; ?>" autoplay="true" muted="true" src="<?php echo mm_get_source(); global $shot_category; echo $shot_category; ?>.mp4#t=<?php echo $start_timecode . ',' . $end_timecode; ?>" width="320" height="240"></video>
+      <div class="timecodes">
+        <span>start: <?php echo $start_timecode; ?></span>
+        <span id="current-time-<?php the_ID(); ?>"></span>
+        <span>end: <?php echo $end_timecode; ?></span>
+      </div>
     </div>
     <div class="streetview-container">
       <img id="streetview-image-<?php the_ID(); ?>"></img>
