@@ -58,6 +58,17 @@ get_header(); ?>
       height: 240px;
       float: left;
       margin-left: 170px;
+      position: relative;
+    }
+    .position-marker {
+      position: absolute;
+      color: #fff;
+      width: 30px;
+      height: 30px;
+      background-image: radial-gradient(circle, #00aeef, rgba(177, 181, 190, 0) 15px);
+      text-align: center;
+      margin-left: -15px;
+      margin-top: -13px;
     }
     .timecodes {
       position: absolute;

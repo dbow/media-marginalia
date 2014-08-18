@@ -45,12 +45,23 @@
       $end_timecode = $value;
     }
 
+    $x = $custom_fields['mm_annotation_x'];
+    foreach ( $x as $key => $value ) {
+      $x = $value;
+    }
+    $y = $custom_fields['mm_annotation_y'];
+    foreach ( $y as $key => $value ) {
+      $y = $value;
+    }
+
+
     // Use the timestamp bounds param to limit video playback. e.g. #t=10,20
   ?>
 
   <div class="video-and-streetview group">
     <div id="video-container-<?php the_ID(); ?>" class="video-container">
       <video style="width: 100%; height: 100%;" data-start-timestamp="<?php echo $start_timecode; ?>" data-end-timestamp="<?php echo $end_timecode; ?>" autoplay="true" muted="true" src="<?php echo mm_get_source(); global $shot_category; echo $shot_category; ?>.mp4#t=<?php echo $start_timecode . ',' . $end_timecode; ?>" width="320" height="240"></video>
+      <div class="position-marker" style="left: <?php echo $x; ?>%; top: <?php echo $y; ?>%;">o</div>
       <div class="timecodes">
         <span>start: <?php echo $start_timecode; ?></span>
         <span id="current-time-<?php the_ID(); ?>"></span>
