@@ -45,7 +45,7 @@ _MM.StreetView = (function() {
       streetViewParams.location = streetViewInfo[0] + ',' + streetViewInfo[1];
       streetViewParams.fov = parseInt(streetViewInfo[3].replace('y', ''), 10);
       streetViewParams.heading = parseFloat(streetViewInfo[4].replace('h', ''));
-      streetViewParams.pitch = 90 - parseFloat(streetViewInfo[5].replace('t', ''));
+      streetViewParams.pitch = parseFloat(streetViewInfo[5].replace('t', '')) - 90;
       return streetViewParams;
     },
 
