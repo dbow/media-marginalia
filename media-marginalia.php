@@ -214,3 +214,14 @@ function applyShotTemplate() {
 
 add_action('template_redirect', 'applyShotTemplate');
 
+
+function add_author_controller($controllers) {
+  $controllers[] = 'author';
+  return $controllers;
+}
+add_filter('json_api_controllers', 'add_author_controller');
+
+function set_author_controller_path() {
+  return dirname( __FILE__ ) . '/author-controller.php';
+}
+add_filter('json_api_author_controller_path', 'set_author_controller_path');
